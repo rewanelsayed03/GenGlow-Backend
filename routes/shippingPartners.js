@@ -7,7 +7,7 @@ const shippingPartnerController = require('../controllers/shippingPartnerControl
 // All routes need authentication + admin restriction
 router.use(authMiddleware, roleMiddleware('admin'));
 
-// CRUD
+
 router.post('/', shippingPartnerController.createShippingPartner);
 router.get('/', shippingPartnerController.getAllShippingPartners);
 router.get('/:id', shippingPartnerController.getShippingPartnerById);
