@@ -46,7 +46,7 @@ exports.submitQuiz = async (req, res) => {
 
         let recommendedProduct = null;
 
-        // 🎯 Rule-based product mapping (1 unique product per quiz)
+        // Rule-based product mapping (1 unique product per quiz)
         if (skinConcerns?.includes('acne')) {
             recommendedProduct = await Product.findOne({ name: /Herbal Acne Serum/i });
         } else if (goals?.includes('anti-aging')) {
