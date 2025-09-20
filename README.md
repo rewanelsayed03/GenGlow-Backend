@@ -6,7 +6,10 @@
 * **Product Recommendations** – Each quiz generates exactly **one unique product recommendation** based on user inputs.
 * **Order Management** – Users can **order recommended products** directly, while admins and pharmacists can manage orders.
 * **Examination Booking** – Users can choose to **book an examination** instead of ordering products.
-* **Role-Based Access Control** – Secure routes for **users**, **admins**, and **pharmacists**.
+* **Sample Requests** – Users can request product samples before making a purchase.
+* **User Accounts** – Profile management, authentication, and role-based access (user, admin, pharmacist).
+* **Reviews & Testimonials** – Users can leave feedback and view reviews for transparency and trust.
+* **Role-Based Access Control (RBAC)** – Secure routes for **users**, **admins**, and **pharmacists**.
 
 ## Tech Stack
 
@@ -35,6 +38,7 @@ npm start
 > The server runs on `http://localhost:5000` by default.
 
 ---
+
 
 
 
