@@ -1,7 +1,6 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const ShippingPartner = require('../models/ShippingPartner');
-const Payment = require('../models/Payment');
 
 //  Create Order 
 const createOrder = async (req, res) => {
@@ -34,7 +33,7 @@ const createOrder = async (req, res) => {
             return { product: item.product, quantity: item.quantity };
         });
 
-        // Assign shipping partner (AdminS/pharmacist only)
+        // Assign shipping partner (Admin/Pharmacist only)
         let partner = null;
         if (shippingPartner && (req.user.role === 'admin' || req.user.role === 'pharmacist')) {
             partner = shippingPartner;
@@ -44,24 +43,11 @@ const createOrder = async (req, res) => {
             user: req.user._id,
             products: orderProducts,
             totalPrice,
-            shippingPartner: partner
+            shippingPartner: partner,
+            paymentStatus: 'Pending' // no Payment object is created yet
         });
+
         await order.save();
-
-        // Handle payment 
-        if (req.user.role === 'user') {
-            const payment = new Payment({
-                order: order._id,
-                user: req.user._id,
-                method: 'Cash On Delivery',
-                amount: totalPrice,
-                status: 'Pending'
-            });
-            await payment.save();
-
-            order.paymentStatus = 'Pending';
-            await order.save();
-        }
 
         const populatedOrder = await Order.findById(order._id)
             .populate('user', 'name email')

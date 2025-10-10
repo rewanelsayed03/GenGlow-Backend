@@ -1,20 +1,25 @@
 const Payment = require('../models/Payment');
 const Order = require('../models/Order');
+const mongoose = require('mongoose');
 
-// Checkout/Payment 
 exports.createPayment = async (req, res) => {
     try {
         const { orderId, method } = req.body;
         if (!orderId) return res.status(400).json({ error: 'Order ID is required' });
 
+        if (!mongoose.Types.ObjectId.isValid(orderId)) {
+            return res.status(400).json({ error: 'Invalid order ID' });
+        }
+
         const order = await Order.findById(orderId).populate('user', 'name email');
         if (!order) return res.status(404).json({ error: 'Order not found' });
+
+        if (!order.user) return res.status(400).json({ error: 'Order has no user assigned' });
 
         if (order.user._id.toString() !== req.user._id.toString()) {
             return res.status(403).json({ error: 'Access denied' });
         }
 
-        // Check if payment already exists
         const existingPayment = await Payment.findOne({ order: orderId });
         if (existingPayment) return res.status(400).json({ error: 'Payment already exists for this order' });
 
@@ -23,19 +28,28 @@ exports.createPayment = async (req, res) => {
             user: req.user._id,
             method: method || 'Cash On Delivery',
             amount: order.totalPrice,
-            status: method === 'Cash On Delivery' ? 'Pending' : 'Completed' 
+            status: method === 'Cash On Delivery' ? 'Pending' : 'Completed'
         });
 
         await payment.save();
 
-        // Update order status based on payment
-        order.status = method === 'Cash On Delivery' ? 'Pending Payment' : 'Paid';
+        order.status = method === 'Cash On Delivery' ? 'Pending' : 'Completed';
         await order.save();
 
         res.status(201).json({ message: 'Payment created successfully', payment });
+
     } catch (error) {
+        // Show full error details for debugging
         console.error('Create Payment Error:', error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('Error name:', error.name);
+        console.error('Error message:', error.message);
+        console.error('Error stack:', error.stack);
+
+        if (error.name === 'CastError') {
+            return res.status(400).json({ error: 'Invalid order ID format' });
+        }
+
+        res.status(500).json({ error: error.message || 'Server error' });
     }
 };
 
