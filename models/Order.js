@@ -14,7 +14,12 @@ const orderSchema = new mongoose.Schema({
         enum: ['Pending', 'Processed', 'Shipped', 'Delivered', 'Cancelled'],
         default: 'Pending'
     },
-    shippingPartner: { type: mongoose.Schema.Types.ObjectId, ref: 'ShippingPartner' }
+    shippingPartner: { type: mongoose.Schema.Types.ObjectId, ref: 'ShippingPartner' },
+    paymentStatus: {
+        type: String,
+        enum: ['Pending', 'Completed', 'Failed'],
+        default: 'Pending' 
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Order', orderSchema);

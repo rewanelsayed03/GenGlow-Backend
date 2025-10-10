@@ -16,6 +16,8 @@ const reviewRoutes = require('./routes/reviews');
 const examinationRoutes = require('./routes/examinations');
 const supplierRoutes = require('./routes/suppliers');
 const shippingPartnerRoutes = require('./routes/shippingPartners');
+const paymentRoutes = require('./routes/payments');
+
 
 const app = express();
 app.use(cors());
@@ -36,6 +38,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/examinations', examinationRoutes);
 app.use('/api/suppliers', supplierRoutes);
 app.use('/api/shipping-partners', shippingPartnerRoutes);
+app.use('/api/payments', paymentRoutes);
 
 
 const PORT = process.env.PORT || 5000;

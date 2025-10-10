@@ -1,66 +1,81 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const ShippingPartner = require('../models/ShippingPartner');
+const Payment = require('../models/Payment');
 
 //  Create Order 
 const createOrder = async (req, res) => {
-        try {
-            const { products, shippingPartner } = req.body;
+    try {
+        const { products, shippingPartner } = req.body;
 
-            if (!products || !Array.isArray(products) || products.length === 0) {
-                return res.status(400).json({ error: 'Products array is required' });
-            }
-
-            // Validate structure
-            for (const item of products) {
-                if (!item.product || !item.quantity || item.quantity < 1) {
-                    return res.status(400).json({ error: 'Each product must have product id and quantity >= 1' });
-                }
-            }
-
-            // Fetch product records from DB
-            const productIds = [...new Set(products.map(p => p.product))];
-            const dbProducts = await Product.find({ _id: { $in: productIds } });
-
-            if (dbProducts.length !== productIds.length) {
-                return res.status(400).json({ error: 'One or more products not found' });
-            }
-
-            // Compute totalPrice
-            let totalPrice = 0;
-            const orderProducts = products.map(item => {
-                const dbp = dbProducts.find(p => p._id.toString() === item.product.toString());
-                const unitPrice = dbp.price || 0;
-                totalPrice += unitPrice * item.quantity;
-                return { product: item.product, quantity: item.quantity };
-            });
-
-            // Only admins/pharmacists can set shipping partner
-            let partner = null;
-            if (shippingPartner && (req.user.role === 'admin' || req.user.role === 'pharmacist')) {
-                partner = shippingPartner;
-            }
-
-            const order = new Order({
-                user: req.user._id,
-                products: orderProducts,
-                totalPrice,
-                shippingPartner: partner
-            });
-
-            await order.save();
-
-            const populated = await Order.findById(order._id)
-                .populate('user', 'name email')
-                .populate('products.product', 'name price category')
-                .populate('shippingPartner', 'name phone');
-
-            res.status(201).json({ message: 'Order placed', order: populated });
-        } catch (error) {
-            console.error('Create Order Error:', error);
-            res.status(500).json({ error: 'Server error' });
+        // Validate products
+        if (!products || !Array.isArray(products) || products.length === 0) {
+            return res.status(400).json({ error: 'Products array is required' });
         }
-    };
+
+        for (const item of products) {
+            if (!item.product || !item.quantity || item.quantity < 1) {
+                return res.status(400).json({ error: 'Each product must have product id and quantity >= 1' });
+            }
+        }
+
+        // Fetch products from DB
+        const productIds = [...new Set(products.map(p => p.product))];
+        const dbProducts = await Product.find({ _id: { $in: productIds } });
+        if (dbProducts.length !== productIds.length) {
+            return res.status(400).json({ error: 'One or more products not found' });
+        }
+
+        // Compute totalPrice 
+        let totalPrice = 0;
+        const orderProducts = products.map(item => {
+            const dbp = dbProducts.find(p => p._id.toString() === item.product.toString());
+            totalPrice += (dbp.price || 0) * item.quantity;
+            return { product: item.product, quantity: item.quantity };
+        });
+
+        // Assign shipping partner (AdminS/pharmacist only)
+        let partner = null;
+        if (shippingPartner && (req.user.role === 'admin' || req.user.role === 'pharmacist')) {
+            partner = shippingPartner;
+        }
+
+        const order = new Order({
+            user: req.user._id,
+            products: orderProducts,
+            totalPrice,
+            shippingPartner: partner
+        });
+        await order.save();
+
+        // Handle payment 
+        if (req.user.role === 'user') {
+            const payment = new Payment({
+                order: order._id,
+                user: req.user._id,
+                method: 'Cash On Delivery',
+                amount: totalPrice,
+                status: 'Pending'
+            });
+            await payment.save();
+
+            order.paymentStatus = 'Pending';
+            await order.save();
+        }
+
+        const populatedOrder = await Order.findById(order._id)
+            .populate('user', 'name email')
+            .populate('products.product', 'name price category')
+            .populate('shippingPartner', 'name phone');
+
+        res.status(201).json({ message: 'Order placed', order: populatedOrder });
+
+    } catch (error) {
+        console.error('Create Order Error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
 
 //  Get All Orders 
 const getAllOrders = async (req, res) => {
