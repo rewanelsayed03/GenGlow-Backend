@@ -2,6 +2,8 @@ const Payment = require('../models/Payment');
 const Order = require('../models/Order');
 const mongoose = require('mongoose');
 
+
+// Checkout
 exports.createPayment = async (req, res) => {
     try {
         const { orderId, method } = req.body;

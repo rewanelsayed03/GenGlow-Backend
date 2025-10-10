@@ -1,9 +1,10 @@
 ﻿const QuizResult = require('../models/QuizResult');
 const Product = require('../models/Product');
 const Order = require('../models/Order');
+const Payment = require('../models/Payment');
 
-//  Submit/Create Quiz Result with Recommendations
 
+// Create Order from Quiz Result
 exports.createOrderFromQuiz = async (req, res) => {
     try {
         const quizResult = await QuizResult.findById(req.params.id).populate('recommendedProducts');
@@ -16,13 +17,28 @@ exports.createOrderFromQuiz = async (req, res) => {
         const recommendedProduct = quizResult.recommendedProducts[0];
         if (!recommendedProduct) return res.status(400).json({ error: 'No recommended product found' });
 
+        const { paymentMethod = "Cash On Delivery" } = req.body;
+
+        // Create Order
         const order = new Order({
             user: req.user._id,
             products: [{ product: recommendedProduct._id, quantity: 1 }],
             totalPrice: recommendedProduct.price,
+            status: paymentMethod === "Cash On Delivery" ? "Pending" : "Completed",
         });
 
         await order.save();
+
+        // Create Payment
+        const payment = new Payment({
+            order: order._id,
+            user: req.user._id,
+            method: paymentMethod,
+            amount: order.totalPrice,
+            status: paymentMethod === "Cash On Delivery" ? "Pending" : "Completed",
+        });
+
+        await payment.save();
 
         const populatedOrder = await Order.findById(order._id)
             .populate('user', 'name email')
@@ -40,13 +56,14 @@ exports.createOrderFromQuiz = async (req, res) => {
 };
 
 
+// Submit Quiz with Recommendation
 exports.submitQuiz = async (req, res) => {
     try {
         const { skinType, skinConcerns, hairType, hairConcerns, goals } = req.body;
 
         let recommendedProduct = null;
 
-        // Rule-based product mapping (1 unique product per quiz)
+        // Rule-based product mapping
         if (skinConcerns?.includes('acne')) {
             recommendedProduct = await Product.findOne({ name: /Herbal Acne Serum/i });
         } else if (goals?.includes('anti-aging')) {
@@ -64,11 +81,10 @@ exports.submitQuiz = async (req, res) => {
         } else if (goals?.includes('relaxation')) {
             recommendedProduct = await Product.findOne({ name: /Relaxing Lavender Oil/i });
         } else {
-            // default fallback product
             recommendedProduct = await Product.findOne({ name: /Detox Herbal Tea/i });
         }
 
-        // Save quiz result with exactly 1 recommended product
+        // Save quiz result
         const quizResult = new QuizResult({
             ...req.body,
             user: req.user._id,
@@ -84,13 +100,15 @@ exports.submitQuiz = async (req, res) => {
             message: 'Quiz submitted with personalized recommendation',
             quizResult: populated
         });
+
     } catch (error) {
         console.error('Submit Quiz Error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 };
 
-//  Get All Quiz Results 
+
+// Get All Quiz Results
 exports.getAllQuizResults = async (req, res) => {
     try {
         let results;
@@ -110,7 +128,8 @@ exports.getAllQuizResults = async (req, res) => {
     }
 };
 
-//  Get Single Quiz Result 
+
+// Get Single Quiz Result
 exports.getQuizResultById = async (req, res) => {
     try {
         const quizResult = await QuizResult.findById(req.params.id)
@@ -130,7 +149,8 @@ exports.getQuizResultById = async (req, res) => {
     }
 };
 
-//  Update Quiz Result 
+
+// Update Quiz Result
 exports.updateQuizResult = async (req, res) => {
     try {
         const quizResult = await QuizResult.findById(req.params.id);
@@ -142,7 +162,8 @@ exports.updateQuizResult = async (req, res) => {
 
         Object.assign(quizResult, req.body);
         const updatedResult = await quizResult.save();
-        const populated = await QuizResult.findById(updatedResult._id).populate('recommendedProducts', 'name price category');
+        const populated = await QuizResult.findById(updatedResult._id)
+            .populate('recommendedProducts', 'name price category');
 
         res.json({ message: 'Quiz result updated', quizResult: populated });
     } catch (error) {
@@ -151,7 +172,8 @@ exports.updateQuizResult = async (req, res) => {
     }
 };
 
-//  Delete Quiz Result
+
+// Delete Quiz Result
 exports.deleteQuizResult = async (req, res) => {
     try {
         const quizResult = await QuizResult.findById(req.params.id);
