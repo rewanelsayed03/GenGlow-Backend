@@ -168,14 +168,45 @@ const updateOrder = async (req, res) => {
     }
 };
 
-// Delete Order 
-const deleteOrder = async (req, res) => {
+// Cancel Order (User or Admin)
+const cancelOrder = async (req, res) => {
     try {
-        const order = await Order.findById(req.params.id);
+        const { id } = req.params;
+        const order = await Order.findById(id);
+
         if (!order) return res.status(404).json({ error: 'Order not found' });
 
         if (req.user.role === 'user' && order.user.toString() !== req.user._id.toString()) {
             return res.status(403).json({ error: 'Access denied' });
+        }
+
+        // Only cancel if not already shipped or delivered
+        if (['Shipped', 'Delivered', 'Cancelled'].includes(order.status)) {
+            return res.status(400).json({ error: 'Cannot cancel this order' });
+        }
+
+        order.status = 'Cancelled';
+        await order.save();
+
+        res.json({ message: 'Order cancelled successfully', order });
+    } catch (error) {
+        console.error('Cancel Order Error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
+
+
+// Delete Order (Admin only)
+const deleteOrder = async (req, res) => {
+    try {
+
+        if (req.user.role !== 'admin') {
+            return res.status(403).json({ error: 'Only admin can delete orders' });
+        }
+
+        const order = await Order.findById(req.params.id);
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found' });
         }
 
         await Order.findByIdAndDelete(req.params.id);
@@ -191,5 +222,6 @@ module.exports = {
     getAllOrders,
     getOrderById,
     updateOrder,
-    deleteOrder
+    deleteOrder,
+    cancelOrder
 };

@@ -16,4 +16,7 @@ router.delete('/:id', orderController.deleteOrder);
 // Only admins/pharmacists can update shippingPartner or products
 router.put('/:id', roleMiddleware('admin', 'pharmacist'), orderController.updateOrder);
 
+// Only users/admins can cancel orders
+router.patch('/:id/cancel', authMiddleware, orderController.cancelOrder);
+
 module.exports = router;

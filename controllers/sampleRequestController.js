@@ -25,7 +25,7 @@ exports.getMySampleRequests = async (req, res) => {
     }
 };
 
-// Admin: Get all requests
+// Get all requests (admin)
 exports.getAllSampleRequests = async (req, res) => {
     try {
         const requests = await SampleRequest.find()
@@ -37,7 +37,7 @@ exports.getAllSampleRequests = async (req, res) => {
     }
 };
 
-// Admin: Update status
+// Update status (Admin only)
 exports.updateSampleRequest = async (req, res) => {
     try {
         const { id } = req.params;
@@ -52,3 +52,29 @@ exports.updateSampleRequest = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+
+// Cancel request (User only)
+exports.cancelSampleRequest = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const request = await SampleRequest.findById(id);
+
+        if (!request) return res.status(404).json({ message: 'Sample request not found' });
+
+        if (request.user.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Not authorized to cancel this request' });
+        }
+
+        if (['Approved', 'Cancelled'].includes(request.status)) {
+            return res.status(400).json({ message: 'Cannot cancel this request' });
+        }
+
+        request.status = 'Cancelled';
+        await request.save();
+
+        res.json({ message: 'Sample request cancelled successfully', request });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
