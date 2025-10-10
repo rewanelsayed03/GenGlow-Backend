@@ -5,7 +5,7 @@ const roleMiddleware = require('../middleware/roleMiddleware');
 const {
     getUserProfile,
     updateUserProfile,
-    deleteUserAccount,   // user delete self
+    deleteUserAccount,   // user delete himself
     getAllUsers,         // admin only
     getUserById,         // admin only
     updateUserById,      // admin only

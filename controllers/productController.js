@@ -1,6 +1,6 @@
 const Product = require('../models/Product');
 
-// ====================== Create Product (Admin/Pharmacist only) ======================
+// Create Product (Admin/Pharmacist only) 
 exports.createProduct = async (req, res) => {
     try {
         const { name, description, price, stock, category, imageUrl, supplier } = req.body;
@@ -25,7 +25,7 @@ exports.createProduct = async (req, res) => {
     }
 };
 
-// ====================== Get All Products ======================
+//  Get All Products 
 exports.getAllProducts = async (req, res) => {
     try {
         const products = await Product.find().populate('supplier', 'name contactEmail phone');
@@ -36,7 +36,7 @@ exports.getAllProducts = async (req, res) => {
     }
 };
 
-// ====================== Get Single Product ======================
+// Get Single Product 
 exports.getProductById = async (req, res) => {
     try {
         const product = await Product.findById(req.params.id).populate('supplier', 'name contactEmail phone');
@@ -48,7 +48,7 @@ exports.getProductById = async (req, res) => {
     }
 };
 
-// ====================== Update Product (Admin/Pharmacist only) ======================
+//  Update Product (Admin/Pharmacist only) 
 exports.updateProduct = async (req, res) => {
     try {
         const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true }).populate('supplier', 'name contactEmail phone');
@@ -61,7 +61,7 @@ exports.updateProduct = async (req, res) => {
     }
 };
 
-// ====================== Delete Product (Admin/Pharmacist only) ======================
+//  Delete Product (Admin/Pharmacist only) 
 exports.deleteProduct = async (req, res) => {
     try {
         const product = await Product.findByIdAndDelete(req.params.id);

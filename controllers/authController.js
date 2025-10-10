@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 
-// ====================== Register User ======================
+// Register User
 exports.registerUser = async (req, res) => {
     try {
         const { name, email, password, role } = req.body;
@@ -50,7 +50,7 @@ exports.registerUser = async (req, res) => {
     }
 };
 
-// ====================== Resend Verification Code ======================
+// Resend Verification Code 
 exports.resendVerificationCode = async (req, res) => {
     try {
         const { email } = req.body;
@@ -83,7 +83,7 @@ exports.resendVerificationCode = async (req, res) => {
     }
 };
 
-// ====================== Verify Email ======================
+// Verify Email 
 exports.verifyEmail = async (req, res) => {
     try {
         const { email, code } = req.body;
@@ -108,7 +108,7 @@ exports.verifyEmail = async (req, res) => {
     }
 };
 
-// ====================== Login User ======================
+//  Login User 
 exports.loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -127,7 +127,7 @@ exports.loginUser = async (req, res) => {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role // frontend can use this immediately
+                role: user.role       // frontend can use this immediately
             }
         });
     } catch (error) {
@@ -136,7 +136,7 @@ exports.loginUser = async (req, res) => {
     }
 };
 
-// ====================== Forgot Password ======================
+// Forgot Password 
 exports.forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
@@ -169,7 +169,7 @@ exports.forgotPassword = async (req, res) => {
     }
 };
 
-// ====================== Reset Password ======================
+// Reset Password 
 exports.resetPassword = async (req, res) => {
     try {
         const { token } = req.params;

@@ -2,7 +2,7 @@
 const Product = require('../models/Product');
 const Order = require('../models/Order');
 
-// ====================== Submit/Create Quiz Result with Recommendations ======================
+//  Submit/Create Quiz Result with Recommendations
 
 exports.createOrderFromQuiz = async (req, res) => {
     try {
@@ -90,7 +90,7 @@ exports.submitQuiz = async (req, res) => {
     }
 };
 
-// ====================== Get All Quiz Results ======================
+//  Get All Quiz Results 
 exports.getAllQuizResults = async (req, res) => {
     try {
         let results;
@@ -110,7 +110,7 @@ exports.getAllQuizResults = async (req, res) => {
     }
 };
 
-// ====================== Get Single Quiz Result ======================
+//  Get Single Quiz Result 
 exports.getQuizResultById = async (req, res) => {
     try {
         const quizResult = await QuizResult.findById(req.params.id)
@@ -130,7 +130,7 @@ exports.getQuizResultById = async (req, res) => {
     }
 };
 
-// ====================== Update Quiz Result ======================
+//  Update Quiz Result 
 exports.updateQuizResult = async (req, res) => {
     try {
         const quizResult = await QuizResult.findById(req.params.id);
@@ -151,7 +151,7 @@ exports.updateQuizResult = async (req, res) => {
     }
 };
 
-// ====================== Delete Quiz Result ======================
+//  Delete Quiz Result
 exports.deleteQuizResult = async (req, res) => {
     try {
         const quizResult = await QuizResult.findById(req.params.id);

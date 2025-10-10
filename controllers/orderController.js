@@ -2,7 +2,7 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 const ShippingPartner = require('../models/ShippingPartner');
 
-// ====================== Create Order ======================
+//  Create Order 
 const createOrder = async (req, res) => {
         try {
             const { products, shippingPartner } = req.body;
@@ -62,7 +62,7 @@ const createOrder = async (req, res) => {
         }
     };
 
-// ====================== Get All Orders ======================
+//  Get All Orders 
 const getAllOrders = async (req, res) => {
     try {
         let orders;
@@ -84,7 +84,7 @@ const getAllOrders = async (req, res) => {
     }
 };
 
-// ====================== Get Single Order ======================
+//  Get Single Order 
 const getOrderById = async (req, res) => {
     try {
         const order = await Order.findById(req.params.id)
@@ -105,7 +105,7 @@ const getOrderById = async (req, res) => {
     }
 };
 
-// ====================== Update Order ======================
+//  Update Order 
 const updateOrder = async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);
@@ -168,7 +168,7 @@ const updateOrder = async (req, res) => {
     }
 };
 
-// ====================== Delete Order ======================
+// Delete Order 
 const deleteOrder = async (req, res) => {
     try {
         const order = await Order.findById(req.params.id);

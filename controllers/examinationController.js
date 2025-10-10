@@ -1,6 +1,6 @@
 const Examination = require('../models/Examination');
 
-// ====================== Create Examination ======================  (Customer books with Pharmacist)
+//  Create Examination  (Customer books with Pharmacist)
 
 exports.createExamination = async (req, res) => {
     try {

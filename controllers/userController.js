@@ -3,7 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 
-// ====================== User Self ======================
+// Self User
 exports.getUserProfile = async (req, res) => {
     res.json(req.user);
 };
@@ -32,7 +32,7 @@ exports.deleteUserAccount = async (req, res) => {
     }
 };
 
-// ====================== Admin Only ======================
+// Admin Only 
 exports.getAllUsers = async (req, res) => {
     const users = await User.find().select('-password');
     res.json(users);

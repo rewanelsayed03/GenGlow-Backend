@@ -10,7 +10,6 @@ const {
     deleteSupplier
 } = require('../controllers/supplierController');
 
-// All supplier routes restricted to admin
 router.use(authMiddleware, roleMiddleware('admin'));
 
 router.post('/', createSupplier);
