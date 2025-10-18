@@ -9,8 +9,4 @@ router.post('/', authMiddleware, sampleRequestController.createSampleRequest);
 router.get('/my', authMiddleware, sampleRequestController.getMySampleRequests);
 router.patch('/:id/cancel', authMiddleware, sampleRequestController.cancelSampleRequest);
 
-// Admin routes
-router.get('/', authMiddleware, roleMiddleware('admin'), sampleRequestController.getAllSampleRequests);
-router.put('/:id', authMiddleware, roleMiddleware('admin'), sampleRequestController.updateSampleRequest);
-
 module.exports = router;

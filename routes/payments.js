@@ -9,7 +9,4 @@ router.post('/checkout', authMiddleware, paymentController.createPayment);
 // Get user's payment history
 router.get('/my-payments', authMiddleware, paymentController.getUserPayments);
 
-// Get all payments (Admin only)
-router.get('/all', authMiddleware, paymentController.getAllPayments);
-
 module.exports = router;

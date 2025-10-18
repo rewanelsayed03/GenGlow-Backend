@@ -5,7 +5,7 @@ const sampleRequestSchema = new mongoose.Schema({
     product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
     status: {
         type: String,
-        enum: ['Pending', 'Approved', 'Rejected', 'Shipped'],
+        enum: ['Pending', 'Approved', 'Rejected', 'Shipped', 'Cancelled'],
         default: 'Pending',
     },
     createdAt: { type: Date, default: Date.now }

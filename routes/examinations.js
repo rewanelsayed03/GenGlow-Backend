@@ -10,6 +10,6 @@ router.post('/', roleMiddleware('user'), examController.createExamination);
 router.get('/', examController.getAllExaminations);
 router.get('/:id', examController.getExaminationById);
 router.put('/:id', examController.updateExamination);
-router.delete('/:id', roleMiddleware('admin'), examController.deleteExamination);
+
 
 module.exports = router;

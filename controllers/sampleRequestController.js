@@ -1,15 +1,27 @@
 const SampleRequest = require('../models/SampleRequest');
+const Product = require('../models/Product');
 
-// Create a sample request
+// Create a sample request (User only)
 exports.createSampleRequest = async (req, res) => {
     try {
+        if (req.user.role !== 'user') {
+            return res.status(403).json({ message: 'Only users can request samples' });
+        }
+
         const { productId } = req.body;
+        if (!productId) return res.status(400).json({ message: 'Product ID is required' });
+
+        const productExists = await Product.findById(productId);
+        if (!productExists) return res.status(404).json({ message: 'Product not found' });
+
         const newRequest = await SampleRequest.create({
             user: req.user._id,
             product: productId
         });
+
         res.status(201).json({ message: 'Sample request submitted', request: newRequest });
     } catch (error) {
+        console.error('Create Sample Request Error:', error);
         res.status(500).json({ error: error.message });
     }
 };
@@ -21,34 +33,7 @@ exports.getMySampleRequests = async (req, res) => {
             .populate('product', 'name price');
         res.json(requests);
     } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// Get all requests (admin)
-exports.getAllSampleRequests = async (req, res) => {
-    try {
-        const requests = await SampleRequest.find()
-            .populate('user', 'name email')
-            .populate('product', 'name price');
-        res.json(requests);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-};
-
-// Update status (Admin only)
-exports.updateSampleRequest = async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { status } = req.body;
-        const updated = await SampleRequest.findByIdAndUpdate(
-            id,
-            { status },
-            { new: true }
-        );
-        res.json(updated);
-    } catch (error) {
+        console.error('Get My Sample Requests Error:', error);
         res.status(500).json({ error: error.message });
     }
 };
@@ -74,7 +59,9 @@ exports.cancelSampleRequest = async (req, res) => {
 
         res.json({ message: 'Sample request cancelled successfully', request });
     } catch (error) {
+        console.error('Cancel Sample Request Error:', error);
         res.status(500).json({ error: error.message });
     }
 };
+
 

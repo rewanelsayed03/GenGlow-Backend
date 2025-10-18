@@ -7,7 +7,7 @@ const crypto = require('crypto');
 // Register User
 exports.registerUser = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, email, password } = req.body;
 
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json({ error: 'User already exists' });
@@ -19,7 +19,7 @@ exports.registerUser = async (req, res) => {
             name,
             email,
             password: hashedPassword,
-            role: role || 'user',
+            role: 'user',
             verificationCode,
             verificationCodeExpires: Date.now() + 10 * 60 * 1000,
             isVerified: false
@@ -55,7 +55,7 @@ exports.resendVerificationCode = async (req, res) => {
     try {
         const { email } = req.body;
         const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ error: 'User not found' });
+        if (!user) return res.status(400).json({ error: 'Invalid email or password' });
         if (user.isVerified) return res.status(400).json({ error: 'User is already verified' });
 
         const newCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -88,7 +88,7 @@ exports.verifyEmail = async (req, res) => {
     try {
         const { email, code } = req.body;
         const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ error: 'User not found' });
+        if (!user) return res.status(400).json({ error: 'Invalid email or password' });
         if (user.isVerified) return res.status(400).json({ error: 'User already verified' });
 
         if (user.verificationCode !== code || user.verificationCodeExpires < Date.now()) {
@@ -112,24 +112,33 @@ exports.verifyEmail = async (req, res) => {
 exports.loginUser = async (req, res) => {
     try {
         const { email, password } = req.body;
+
+        // Check if user exists
         const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ error: 'Invalid credentials' });
+        if (!user) return res.status(400).json({ error: 'Invalid email or password' });
+
+        // Check if email is verified
         if (!user.isVerified) return res.status(401).json({ error: 'Please verify your email before logging in' });
 
+        // Compare passwords
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
+        if (!isMatch) return res.status(400).json({ error: 'Invalid email or password' });
 
+        // Generate JWT token
         const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-        res.json({
+        res.status(200).json({
+            message: 'Login successful',
             token,
             user: {
                 id: user._id,
                 name: user.name,
                 email: user.email,
-                role: user.role       // frontend can use this immediately
+                role: user.role       
             }
         });
+
+
     } catch (error) {
         console.error('Login Error:', error);
         res.status(500).json({ error: 'Server error' });
@@ -141,7 +150,7 @@ exports.forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
         const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ error: 'User not found' });
+        if (!user) return res.status(400).json({ error: 'Invalid email or password' });
 
         const resetToken = crypto.randomBytes(32).toString('hex');
         user.resetPasswordToken = resetToken;

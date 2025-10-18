@@ -5,11 +5,8 @@ const roleMiddleware = require('../middleware/roleMiddleware');
 const {
     getUserProfile,
     updateUserProfile,
-    deleteUserAccount,   // user delete himself
-    getAllUsers,         // admin only
-    getUserById,         // admin only
-    updateUserById,      // admin only
-    deleteUserById       // admin only
+    deleteUserAccount  // user delete himself
+   
 } = require('../controllers/userController');
 
 // Logged-in user routes
@@ -17,10 +14,5 @@ router.get('/profile', authMiddleware, getUserProfile);
 router.put('/profile', authMiddleware, updateUserProfile);
 router.delete('/profile', authMiddleware, deleteUserAccount);
 
-// Admin routes
-router.get('/', authMiddleware, roleMiddleware('admin'), getAllUsers);
-router.get('/:id', authMiddleware, roleMiddleware('admin'), getUserById);
-router.put('/:id', authMiddleware, roleMiddleware('admin'), updateUserById);
-router.delete('/:id', authMiddleware, roleMiddleware('admin'), deleteUserById);
 
 module.exports = router;

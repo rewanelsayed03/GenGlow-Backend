@@ -1,6 +1,7 @@
 const Examination = require('../models/Examination');
 
-//  Create Examination  (Customer books with Pharmacist)
+// Create Examination
+// Customer books with Pharmacist
 
 exports.createExamination = async (req, res) => {
     try {
@@ -31,21 +32,18 @@ exports.createExamination = async (req, res) => {
 };
 
 
-// Get all Examinations (Admin/Pharmacist see all, customer sees own)
+// Get All Examinations (User sees only their own)
 exports.getAllExaminations = async (req, res) => {
     try {
-        let exams;
-        if (req.user.role === 'admin' || req.user.role === 'pharmacist') {
-            exams = await Examination.find().populate('customer', 'name email').populate('pharmacist', 'name email');
-        } else {
-            exams = await Examination.find({ customer: req.user._id }).populate('pharmacist', 'name email');
-        }
+        const exams = await Examination.find({ customer: req.user._id })
+            .populate('pharmacist', 'name email');
         res.json(exams);
     } catch (error) {
         console.error('Get All Examinations Error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 };
+
 
 // Get single Examination
 exports.getExaminationById = async (req, res) => {
@@ -73,14 +71,20 @@ exports.updateExamination = async (req, res) => {
         const exam = await Examination.findById(req.params.id);
         if (!exam) return res.status(404).json({ error: 'Examination not found' });
 
+        // User trying to update someone else's examination
         if (req.user.role === 'user' && exam.customer.toString() !== req.user._id.toString()) {
             return res.status(403).json({ error: 'Access denied' });
         }
 
-        // Customer can only cancel
         if (req.user.role === 'user') {
-            exam.status = 'Cancelled';
+            // Users can only cancel
+            if (req.body.status === 'Cancelled') {
+                exam.status = 'Cancelled';
+            } else {
+                return res.status(403).json({ error: 'Users can only cancel examinations' });
+            }
         } else {
+            // Admin/Pharmacist can update everything
             Object.assign(exam, req.body);
         }
 
@@ -92,19 +96,3 @@ exports.updateExamination = async (req, res) => {
     }
 };
 
-// Delete Examination (Admin only)
-exports.deleteExamination = async (req, res) => {
-    try {
-        if (req.user.role !== 'admin') {
-            return res.status(403).json({ error: 'Only admin can delete examinations' });
-        }
-
-        const exam = await Examination.findByIdAndDelete(req.params.id);
-        if (!exam) return res.status(404).json({ error: 'Examination not found' });
-
-        res.json({ message: 'Examination deleted' });
-    } catch (error) {
-        console.error('Delete Examination Error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-};

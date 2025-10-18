@@ -16,7 +16,7 @@ router.get('/:id', authMiddleware, QuizResultController.getQuizResultById);
 // Create order from quiz result (for users)
 router.post('/:id/order', authMiddleware, QuizResultController.createOrderFromQuiz);
 
-// Update & delete (restricted to Admin / pharmacist if you want)
+// Update & delete (restricted to Admin / pharmacist)
 router.put('/:id', authMiddleware, roleMiddleware('admin', 'pharmacist'), QuizResultController.updateQuizResult);
 router.delete('/:id', authMiddleware, roleMiddleware('admin', 'pharmacist'), QuizResultController.deleteQuizResult);
 

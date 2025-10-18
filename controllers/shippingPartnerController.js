@@ -4,12 +4,23 @@ const Order = require('../models/Order');
 // Create Shipping Partner
 exports.createShippingPartner = async (req, res) => {
     try {
-        const partner = new ShippingPartner(req.body);
+        const { name, phone, address, orders } = req.body;
+
+        const partner = new ShippingPartner({ name, phone, address, orders });
         await partner.save();
+
+        // Link only pending orders and mark them as Shipped
+        if (orders && orders.length > 0) {
+            await Order.updateMany(
+                { _id: { $in: orders }, status: 'Pending' },
+                { shippingPartner: partner._id, status: 'Shipped' }
+            );
+        }
+
         res.status(201).json({ message: 'Shipping Partner created', partner });
     } catch (error) {
         console.error('Create Shipping Partner Error:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Server error', details: error.message });
     }
 };
 
@@ -20,7 +31,7 @@ exports.getAllShippingPartners = async (req, res) => {
         res.json(partners);
     } catch (error) {
         console.error('Get Shipping Partners Error:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Server error', details: error.message });
     }
 };
 
@@ -32,7 +43,7 @@ exports.getShippingPartnerById = async (req, res) => {
         res.json(partner);
     } catch (error) {
         console.error('Get Shipping Partner Error:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Server error', details: error.message });
     }
 };
 
@@ -41,10 +52,19 @@ exports.updateShippingPartner = async (req, res) => {
     try {
         const partner = await ShippingPartner.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!partner) return res.status(404).json({ error: 'Shipping Partner not found' });
+
+        // If updating orders, link only pending orders and mark them as Shipped
+        if (req.body.orders && req.body.orders.length > 0) {
+            await Order.updateMany(
+                { _id: { $in: req.body.orders }, status: 'Pending' },
+                { shippingPartner: partner._id, status: 'Shipped' }
+            );
+        }
+
         res.json({ message: 'Shipping Partner updated', partner });
     } catch (error) {
         console.error('Update Shipping Partner Error:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Server error', details: error.message });
     }
 };
 
@@ -54,7 +74,7 @@ exports.deleteShippingPartner = async (req, res) => {
         const partner = await ShippingPartner.findById(req.params.id);
         if (!partner) return res.status(404).json({ error: 'Shipping Partner not found' });
 
-        // Unlink all orders from this shipping partner
+        // Unlink all orders from this shipping partner (keep their status as is)
         await Order.updateMany(
             { shippingPartner: partner._id },
             { $unset: { shippingPartner: "" } }
@@ -64,6 +84,6 @@ exports.deleteShippingPartner = async (req, res) => {
         res.json({ message: 'Shipping Partner deleted and orders unlinked' });
     } catch (error) {
         console.error('Delete Shipping Partner Error:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Server error', details: error.message });
     }
 };

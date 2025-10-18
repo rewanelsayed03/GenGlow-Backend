@@ -3,6 +3,41 @@ const Order = require('../models/Order');
 const mongoose = require('mongoose');
 
 
+// Create Product
+exports.createProduct = async (req, res) => {
+    try {
+        const { name, description, price, stock, category, supplier } = req.body;
+
+        // Validate supplier exists
+        if (supplier) {
+            const supplierExists = await Supplier.findById(supplier);
+            if (!supplierExists) return res.status(400).json({ error: 'Supplier not found' });
+        }
+
+        if (!req.files || !req.files.image) {
+            return res.status(400).json({ error: 'Please upload an image' });
+        }
+
+        const file = req.files.image;
+        const result = await cloudinary.uploader.upload(file.tempFilePath, { folder: 'GenGlow/Products' });
+
+        if (fs.existsSync(file.tempFilePath)) fs.unlinkSync(file.tempFilePath);
+
+        const product = new Product({ name, description, price, stock, category, imageUrl: result.secure_url, supplier });
+        await product.save();
+
+        await product.populate('supplier', 'name _id');
+
+        res.status(201).json({ message: 'Product created successfully', product });
+
+    } catch (error) {
+        console.error('Create Product Error:', error);
+        res.status(500).json({ error: 'Server error', details: error.message });
+    }
+};
+
+
+
 // Checkout
 exports.createPayment = async (req, res) => {
     try {
@@ -69,21 +104,4 @@ exports.getUserPayments = async (req, res) => {
     }
 };
 
-// Get all payments (Admin only)
-exports.getAllPayments = async (req, res) => {
-    try {
-        if (req.user.role !== 'admin') {
-            return res.status(403).json({ error: 'Access denied' });
-        }
 
-        const payments = await Payment.find()
-            .populate('order', 'totalPrice status user')
-            .populate('user', 'name email')
-            .sort({ paymentDate: -1 });
-
-        res.json(payments);
-    } catch (error) {
-        console.error('Get All Payments Error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-};

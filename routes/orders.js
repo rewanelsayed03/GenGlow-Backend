@@ -6,10 +6,8 @@ const orderController = require('../controllers/orderController');
 
 router.use(authMiddleware);
 
-router.get('/', orderController.getAllOrders);
 router.get('/:id', orderController.getOrderById);
 router.post('/', orderController.createOrder);
-router.delete('/:id', roleMiddleware('admin'), orderController.deleteOrder);
 router.put('/:id', roleMiddleware('admin', 'pharmacist'), orderController.updateOrder);
 router.patch('/:id/cancel', orderController.cancelOrder);
 
