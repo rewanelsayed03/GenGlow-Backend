@@ -2,42 +2,6 @@ const Payment = require('../models/Payment');
 const Order = require('../models/Order');
 const mongoose = require('mongoose');
 
-
-// Create Product
-exports.createProduct = async (req, res) => {
-    try {
-        const { name, description, price, stock, category, supplier } = req.body;
-
-        // Validate supplier exists
-        if (supplier) {
-            const supplierExists = await Supplier.findById(supplier);
-            if (!supplierExists) return res.status(400).json({ error: 'Supplier not found' });
-        }
-
-        if (!req.files || !req.files.image) {
-            return res.status(400).json({ error: 'Please upload an image' });
-        }
-
-        const file = req.files.image;
-        const result = await cloudinary.uploader.upload(file.tempFilePath, { folder: 'GenGlow/Products' });
-
-        if (fs.existsSync(file.tempFilePath)) fs.unlinkSync(file.tempFilePath);
-
-        const product = new Product({ name, description, price, stock, category, imageUrl: result.secure_url, supplier });
-        await product.save();
-
-        await product.populate('supplier', 'name _id');
-
-        res.status(201).json({ message: 'Product created successfully', product });
-
-    } catch (error) {
-        console.error('Create Product Error:', error);
-        res.status(500).json({ error: 'Server error', details: error.message });
-    }
-};
-
-
-
 // Checkout
 exports.createPayment = async (req, res) => {
     try {
@@ -63,14 +27,14 @@ exports.createPayment = async (req, res) => {
         const payment = new Payment({
             order: order._id,
             user: req.user._id,
-            method: method || 'Cash On Delivery',
+            method: 'Cash On Delivery',
             amount: order.totalPrice,
-            status: method === 'Cash On Delivery' ? 'Pending' : 'Completed'
+            status: 'Pending'
         });
 
         await payment.save();
 
-        order.status = method === 'Cash On Delivery' ? 'Pending' : 'Completed';
+        order.status = 'Pending'
         await order.save();
 
         res.status(201).json({ message: 'Payment created successfully', payment });
@@ -104,4 +68,23 @@ exports.getUserPayments = async (req, res) => {
     }
 };
 
+// Complete Payment (Admin/Pharmacist only)
+exports.completePayment = async (req, res) => {
+    try {
+        const payment = await Payment.findById(req.params.id).populate('order');
+        if (!payment) return res.status(404).json({ error: 'Payment not found' });
 
+        // Update payment status
+        payment.status = 'Completed';
+        await payment.save();
+
+        // Update order status
+        payment.order.status = 'Completed';
+        await payment.order.save();
+
+        res.json({ message: 'Payment marked as completed', payment });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
