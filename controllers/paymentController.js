@@ -74,17 +74,20 @@ exports.completePayment = async (req, res) => {
         const payment = await Payment.findById(req.params.id).populate('order');
         if (!payment) return res.status(404).json({ error: 'Payment not found' });
 
+        if (!payment.order) {
+            return res.status(400).json({ error: 'Associated order not found' });
+        }
+
         // Update payment status
         payment.status = 'Completed';
-        await payment.save();
+        await payment.save(); 
 
-        // Update order status
-        payment.order.status = 'Completed';
-        await payment.order.save();
+        // Update order status safely
+        await Order.findByIdAndUpdate(payment.order._id, { status: 'Completed' });
 
         res.json({ message: 'Payment marked as completed', payment });
     } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('Complete Payment Error:', error);
+        res.status(500).json({ error: 'Server error', details: error.message });
     }
 };

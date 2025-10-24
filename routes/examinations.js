@@ -7,7 +7,7 @@ const examController = require('../controllers/examinationController');
 router.use(authMiddleware);
 
 router.post('/', roleMiddleware('user'), examController.createExamination);
-router.get('/', examController.getAllExaminations);
+router.get('/', roleMiddleware('user'), examController.getAllExaminations);
 router.get('/:id', examController.getExaminationById);
 router.put('/:id', examController.updateExamination);
 

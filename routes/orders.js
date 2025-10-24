@@ -7,7 +7,7 @@ const orderController = require('../controllers/orderController');
 router.use(authMiddleware);
 
 router.get('/:id', orderController.getOrderById);
-router.post('/', orderController.createOrder);
+router.post('/', roleMiddleware('user'), orderController.createOrder);
 router.put('/:id', roleMiddleware('admin', 'pharmacist'), orderController.updateOrder);
 router.patch('/:id/cancel', orderController.cancelOrder);
 

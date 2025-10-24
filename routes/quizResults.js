@@ -5,7 +5,7 @@ const roleMiddleware = require('../middleware/roleMiddleware');
 const QuizResultController = require('../controllers/QuizResultController');
 
 // Normal user submits quiz
-router.post('/', authMiddleware, QuizResultController.submitQuiz);
+router.post('/', roleMiddleware('user'), authMiddleware, QuizResultController.submitQuiz);
 
 // Admin / pharmacist can see all results
 router.get('/', authMiddleware, roleMiddleware('admin', 'pharmacist'), QuizResultController.getAllQuizResults);
