@@ -15,7 +15,7 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(fileUpload({ useTempFiles: true }));
+app.use(fileUpload({ useTempFiles: true, tempFileDir: '/tmp/' }));
 
 // Cloudinary
 app.post('/api/upload', async (req, res) => {
