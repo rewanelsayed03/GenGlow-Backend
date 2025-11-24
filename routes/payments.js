@@ -8,7 +8,7 @@ const roleMiddleware = require('../middleware/roleMiddleware');
 router.post('/checkout', authMiddleware, paymentController.createPayment);
 
 // Get user's payment history
-router.get('/my-payments', roleMiddleware('user'), authMiddleware, paymentController.getUserPayments);
+router.get('/my-payments', authMiddleware, roleMiddleware('user'), paymentController.getUserPayments);
 
 // Complete Payment (Admin/Pharmacist only)
 router.patch('/:id/complete', authMiddleware, roleMiddleware('admin', 'pharmacist'), paymentController.completePayment);

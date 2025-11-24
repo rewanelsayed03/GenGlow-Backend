@@ -5,21 +5,29 @@ const ShippingPartner = require('../models/ShippingPartner');
 // Create Order 
 const createOrder = async (req, res) => {
     try {
+
+        // req.body.products is expected to be an array of { product: <id>, quantity: <number> }.
         const { products } = req.body;
 
         // Validate products
+        // Checks that: products exists, it's an array, it’s not empty.
         if (!products || !Array.isArray(products) || products.length === 0) {
             return res.status(400).json({ error: 'Products array is required' });
         }
 
+        // each product has a valid ID and quantity >= 1.
         for (const item of products) {
             if (!item.product || !item.quantity || item.quantity < 1) {
                 return res.status(400).json({ error: 'Each product must have a valid product id and quantity >= 1' });
             }
         }
 
-        // Fetch and verify products
-        const productIds = [...new Set(products.map(p => p.product))];
+        // Fetch and verify products.
+        // p in .map(p => p.product) is each item in the products array.
+        // Removes duplicate product IDs using Set.
+        const productIds = [...new Set(products.map(p => p.product))]; 
+
+        // Fetches products from the database.
         const dbProducts = await Product.find({ _id: { $in: productIds } });
         if (dbProducts.length !== productIds.length) {
             return res.status(400).json({ error: 'One or more products not found' });
@@ -28,21 +36,28 @@ const createOrder = async (req, res) => {
         // Calculate total
         let totalPrice = 0;
         const orderProducts = products.map(item => {
+
+            // Find the product in the DB.
             const dbp = dbProducts.find(p => p._id.toString() === item.product.toString());
+
+            // Multiply price * quantity and sum it to totalPrice.
             totalPrice += (dbp.price || 0) * item.quantity;
             return { product: item.product, quantity: item.quantity };
         });
 
-        // Reduce stock for each product
+        // Checks that stock is enough for each product.
         for (const item of products) {
             const dbProduct = dbProducts.find(p => p._id.toString() === item.product.toString());
             if (dbProduct.stock < item.quantity) {
                 return res.status(400).json({ error: `Not enough stock for ${dbProduct.name}` });
             }
+
+            // // Reduces stock and saves the product.
             dbProduct.stock -= item.quantity;
             await dbProduct.save();
         }
 
+        // Creates a new order for the user.
         // User cannot set shipping partner; admin/pharma can assign later
         const order = new Order({
             user: req.user._id,
@@ -106,6 +121,8 @@ const updateOrder = async (req, res) => {
 // Get Single Order 
 const getOrderById = async (req, res) => {
     try {
+
+        // Admin/pharmacist can see all orders.
         const order = await Order.findById(req.params.id)
             .populate('user', 'name email')
             .populate('products.product', 'name price')
@@ -113,6 +130,7 @@ const getOrderById = async (req, res) => {
 
         if (!order) return res.status(404).json({ error: 'Order not found' });
 
+        // Regular users can only see their own orders.
         if (req.user.role === 'user' && order.user._id.toString() !== req.user._id.toString()) {
             return res.status(403).json({ error: 'Access denied' });
         }

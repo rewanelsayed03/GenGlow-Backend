@@ -32,10 +32,15 @@ exports.submitQuiz = async (req, res) => {
         let bestMatch = null;
         let highestScore = 0;
 
+        // Loop over each product and calculate a score based on the quiz answers.
         for (const product of allProducts) {
             let score = 0;
 
-         
+            // Uses regex to check if product name matches certain keywords.
+            // (Regex) A special pattern used to match strings.
+            // ex: /Aloe|Hydrating/ --> matches either "Aloe" or "Hydrating" in the string.
+            //     i --> case-insensitive
+            //    .test(product.name) --> returns true if the product name matches the pattern.
             if (skinType === 'dry' && /Hydrating|Aloe|Moisturizing/i.test(product.name)) score += 4;
             if (skinType === 'oily' && /Vitamin C|Brightening|Clay|Anti-Pollution|Tea Tree/i.test(product.name)) score += 4;
             if (skinType === 'combination' && /Balance|Gentle|Hydrating|Brightening/i.test(product.name)) score += 4;
@@ -89,19 +94,19 @@ exports.submitQuiz = async (req, res) => {
             if (goals.includes('improve scalp health') && /Dandruff|Rosemary|Herbal/i.test(product.name)) score += 4;
             if (goals.includes('relaxation') && /Lavender|Chamomile|Night Cream|Tea/i.test(product.name)) score += 3;
 
-          
+            // Keeps track of the product with the highest score.
             if (score > highestScore) {
                 highestScore = score;
                 bestMatch = product;
             }
         }
 
+        // Assigns the best-matched product to the quiz result.
         if (bestMatch) {
             newQuiz.recommendedProducts = [bestMatch._id];
         }
 
         const savedQuiz = await newQuiz.save();
-
         const populatedQuiz = await QuizResult.findById(savedQuiz._id)
             .populate('recommendedProducts', 'name price category');
 
@@ -122,14 +127,14 @@ exports.createOrderFromQuiz = async (req, res) => {
         const quizResult = await QuizResult.findById(req.params.id).populate('recommendedProducts');
         if (!quizResult) return res.status(404).json({ error: 'Quiz result not found' });
 
+        // Only the quiz owner can create an order (checks user ID).
         if (quizResult.user.toString() !== req.user._id.toString()) {
             return res.status(403).json({ error: 'Access denied' });
         }
 
+        // Creates a new order with the recommended product (quantity 1).
         const recommendedProduct = quizResult.recommendedProducts[0];
         if (!recommendedProduct) return res.status(400).json({ error: 'No recommended product available' });
-
-
         const order = new Order({
             user: req.user._id,
             products: [{ product: recommendedProduct._id, quantity: 1 }],
@@ -156,11 +161,14 @@ exports.createOrderFromQuiz = async (req, res) => {
 exports.getAllQuizResults = async (req, res) => {
     try {
         let results;
+
+        // Admins/pharmacists see all quiz results.
         if (req.user.role === 'admin' || req.user.role === 'pharmacist') {
             results = await QuizResult.find()
                 .populate('user', 'name email role')
-                .populate('recommendedProducts', 'name price category');
+                .populate('recommendedProducts', 'name price category'); // populate (replace IDs with actual documents).
         } else {
+            // Normal users see only their own.
             results = await QuizResult.find({ user: req.user._id })
                 .populate('user', 'name email')
                 .populate('recommendedProducts', 'name price category');
@@ -181,6 +189,7 @@ exports.getQuizResultById = async (req, res) => {
 
         if (!quizResult) return res.status(404).json({ error: 'Quiz result not found' });
 
+        // Normal users can only view their own quizzes.
         if (req.user.role === 'user' && quizResult.user._id.toString() !== req.user._id.toString()) {
             return res.status(403).json({ error: 'Access denied' });
         }

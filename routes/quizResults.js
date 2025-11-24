@@ -5,7 +5,7 @@ const roleMiddleware = require('../middleware/roleMiddleware');
 const QuizResultController = require('../controllers/QuizResultController');
 
 // Normal user submits quiz
-router.post('/', roleMiddleware('user'), authMiddleware, QuizResultController.submitQuiz);
+router.post('/', authMiddleware, roleMiddleware('user'), QuizResultController.submitQuiz);
 
 // Admin / pharmacist can see all results
 router.get('/', authMiddleware, roleMiddleware('admin', 'pharmacist'), QuizResultController.getAllQuizResults);
@@ -14,7 +14,7 @@ router.get('/', authMiddleware, roleMiddleware('admin', 'pharmacist'), QuizResul
 router.get('/:id', authMiddleware, QuizResultController.getQuizResultById);
 
 // Create order from quiz result (for users)
-router.post('/:id/order', authMiddleware, QuizResultController.createOrderFromQuiz);
+router.post('/:id/order', authMiddleware, roleMiddleware('user'), QuizResultController.createOrderFromQuiz);
 
 // Update & delete (restricted to Admin / pharmacist)
 router.put('/:id', authMiddleware, roleMiddleware('admin', 'pharmacist'), QuizResultController.updateQuizResult);

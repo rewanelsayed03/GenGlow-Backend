@@ -3,7 +3,7 @@ const User = require('../models/User');
 const Examination = require('../models/Examination');
 const SampleRequest = require('../models/SampleRequest');
 
-//  View All Examinations 
+// View All Examinations 
 exports.getAllExaminations = async (req, res) => {
     try {
         const exams = await Examination.find()
@@ -33,6 +33,7 @@ exports.updateExamination = async (req, res) => {
             exam.status = status;
         }
 
+        // Update notes even if its empty
         if (typeof notes !== 'undefined') {
             exam.notes = notes;
         }

@@ -1,6 +1,8 @@
 ﻿const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+
+// File system module helps delete or read files.
 const fs = require('fs');
 const fileUpload = require('express-fileupload');
 const connectDB = require('./config/db');
@@ -20,10 +22,13 @@ app.use(fileUpload({ useTempFiles: true, tempFileDir: '/tmp/' }));
 // Cloudinary
 app.post('/api/upload', async (req, res) => {
     try {
+
+        // If the user didn’t upload an image return error.
         if (!req.files || !req.files.image) {
             return res.status(400).json({ error: 'No image uploaded' });
         }
 
+        // Extracts the uploaded image.
         const file = req.files.image;
 
         // Upload image to Cloudinary
@@ -31,7 +36,7 @@ app.post('/api/upload', async (req, res) => {
             folder: 'GenGlow',
         });
 
-        // Safely remove temp file
+        // Safely remove temp file to clean storage.
         if (fs.existsSync(file.tempFilePath)) {
             fs.unlinkSync(file.tempFilePath);
         }
@@ -47,7 +52,7 @@ app.post('/api/upload', async (req, res) => {
     }
 });
 
-
+// Test Post (Only returns the same data you send)
 app.post('/saveData', (req, res) => {
     res.send(`Received data: ${JSON.stringify(req.body)}`);
 });

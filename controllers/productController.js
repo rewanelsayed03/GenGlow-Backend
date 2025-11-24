@@ -14,22 +14,26 @@ exports.createProduct = async (req, res) => {
             if (!supplierExists) return res.status(400).json({ error: 'Supplier not found' });
         }
 
+        // Validates that an image file is uploaded.
         if (!req.files || !req.files.image) {
             return res.status(400).json({ error: 'Please upload an image' });
         }
 
+        // Uploads the image to Cloudinary
         const file = req.files.image;
         const result = await cloudinary.uploader.upload(file.tempFilePath, { folder: 'GenGlow/Products' });
 
+        // Deletes the temporary uploaded file from local storage after Cloudinary upload to save space.
         if (fs.existsSync(file.tempFilePath)) fs.unlinkSync(file.tempFilePath);
 
+        // Creates a new product document in MongoDB and saves it.
         const product = new Product({ name, description, price, stock, category, imageUrl: result.secure_url, supplier });
         await product.save();
 
+        // Get the supplier’s name and ID instead of just the ID.
         await product.populate('supplier', 'name _id'); 
 
         res.status(201).json({ message: 'Product created successfully', product });
-
     } catch (error) {
         console.error('Create Product Error:', error);
         res.status(500).json({ error: 'Server error', details: error.message });
@@ -65,11 +69,13 @@ exports.updateProduct = async (req, res) => {
     try {
         const updatedData = { ...req.body };
 
+        // Validates the supplier exists if provided.
         if (updatedData.supplier) {
             const supplierExists = await Supplier.findById(updatedData.supplier);
             if (!supplierExists) return res.status(400).json({ error: 'Supplier not found' });
         }
 
+        // Uploads a new image if provided and deletes the temp file.
         if (req.files && req.files.image) {
             const file = req.files.image;
             const result = await cloudinary.uploader.upload(file.tempFilePath, { folder: 'GenGlow/Products' });
@@ -77,12 +83,13 @@ exports.updateProduct = async (req, res) => {
             if (fs.existsSync(file.tempFilePath)) fs.unlinkSync(file.tempFilePath);
         }
 
+        // Updates the product document. { new: true } --> returns the updated document.
         let query = Product.findByIdAndUpdate(req.params.id, updatedData, { new: true });
         query = query.populate('supplier', 'name _id'); 
 
+        // Returns updated product JSON.
         const product = await query;
         if (!product) return res.status(404).json({ error: 'Product not found' });
-
         res.json({ message: 'Product updated successfully', product });
 
     } catch (error) {

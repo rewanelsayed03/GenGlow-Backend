@@ -6,8 +6,6 @@ const Payment = require('../models/Payment');
 const Review = require('../models/Review');
 const SampleRequest = require('../models/SampleRequest');
 
-
-
 // Create user with specific role 
 exports.createUser = async (req, res) => {
     try {
@@ -17,9 +15,11 @@ exports.createUser = async (req, res) => {
             return res.status(400).json({ error: 'Invalid role' });
         }
 
+        // Checks if the email is already used. Prevents duplicates.
         const existingUser = await User.findOne({ email });
         if (existingUser) return res.status(400).json({ error: 'Email already exists' });
 
+        // Hashes the password for security, then creates the user.
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = await User.create({ name, email, password: hashedPassword, role });
 
@@ -39,6 +39,7 @@ exports.updateUserRole = async (req, res) => {
             return res.status(400).json({ error: 'Invalid role' });
         }
 
+        // Updates the user role in DB and returns updated document (new: true).
         const user = await User.findByIdAndUpdate(userId, { role }, { new: true });
         if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -59,6 +60,7 @@ exports.updateSampleRequest = async (req, res) => {
         const { id } = req.params;
         const { status } = req.body;
 
+        // Updates the status of a sample request and returns the updated request.
         const updated = await SampleRequest.findByIdAndUpdate(id, { status }, { new: true });
         res.json({ message: 'Sample request updated', request: updated });
     } catch (error) {
@@ -70,8 +72,11 @@ exports.updateSampleRequest = async (req, res) => {
 // Get all users
 exports.getAllUsers = async (req, res) => {
     try {
+
+        // Fetches all users, excluding passwords.
         const users = await User.find().select('-password');
         res.status(200).json(users);
+
     } catch (error) {
         console.error('Get All Users Error:', error);
         res.status(500).json({ error: 'Server error' });
@@ -81,6 +86,8 @@ exports.getAllUsers = async (req, res) => {
 // Get all Examinations 
 exports.getAllExaminationsAdmin = async (req, res) => {
     try {
+
+        // Fetches all exams, populates customer and pharmacist fields with their name/email.
         const exams = await Examination.find()
             .populate('customer', 'name email')
             .populate('pharmacist', 'name email');
@@ -95,12 +102,15 @@ exports.getAllExaminationsAdmin = async (req, res) => {
 exports.getAllOrders = async (req, res) => {
     try {
         let orders;
+
+        // Admins/pharmacists can see all orders.
         if (req.user.role === 'admin' || req.user.role === 'pharmacist') {
             orders = await Order.find()
                 .populate('user', 'name email')
                 .populate('products.product', 'name price')
                 .populate('shippingPartner', 'name phone');
         } else {
+            // Regular users only see their own orders.
             orders = await Order.find({ user: req.user._id })
                 .populate('user', 'name email')
                 .populate('products.product', 'name price')
@@ -116,6 +126,8 @@ exports.getAllOrders = async (req, res) => {
 // Get all payments 
 exports.getAllPayments = async (req, res) => {
     try {
+
+        // Only admins can access payments.
         if (req.user.role !== 'admin') {
             return res.status(403).json({ error: 'Access denied' });
         }
@@ -123,7 +135,7 @@ exports.getAllPayments = async (req, res) => {
         const payments = await Payment.find()
             .populate('order', 'totalPrice status user')
             .populate('user', 'name email')
-            .sort({ paymentDate: -1 });
+            .sort({ paymentDate: -1 }); // latest payment
 
         res.json(payments);
     } catch (error) {

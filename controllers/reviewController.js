@@ -36,7 +36,7 @@ exports.getReviewsForProduct = async (req, res) => {
     try {
         const reviews = await Review.find({ product: req.params.productId })
             .populate('user', 'name email')
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 }); // latest review
 
         res.json(reviews);
     } catch (error) {
@@ -55,6 +55,8 @@ exports.updateReview = async (req, res) => {
             return res.status(403).json({ error: 'Access denied' });
         }
 
+        // If the client sends a rating/comment, update it.
+        // If the client does not send a rating/comment, keep the existing rating/comment.
         review.rating = req.body.rating ?? review.rating;
         review.comment = req.body.comment ?? review.comment;
         await review.save();
@@ -72,6 +74,7 @@ exports.deleteReview = async (req, res) => {
         const review = await Review.findById(req.params.id);
         if (!review) return res.status(404).json({ error: 'Review not found' });
 
+        // review.user --> owner 
         if (review.user.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
             return res.status(403).json({ error: 'Access denied' });
         }

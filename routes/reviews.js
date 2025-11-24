@@ -13,7 +13,7 @@ const {
 router.get('/product/:productId', getReviewsForProduct);
 
 // Protected routes
-router.post('/',roleMiddleware('user'), authMiddleware, createReview);
+router.post('/',authMiddleware, roleMiddleware('user'), createReview);
 router.put('/:id', authMiddleware, updateReview);
 router.delete('/:id', authMiddleware, deleteReview);
 
