@@ -30,81 +30,81 @@ const suppliers = [
 const products = [
     {
         name: 'Herbal Acne Serum',
-        description: 'Organic serum with tea tree oil and neem to reduce acne.',
+        description: 'This 100% organic herbal acne serum combines the powerful antibacterial properties of tea tree oil with the purifying effects of neem extract to cleanse pores deeply. It reduces inflammation, calms redness, and prevents future breakouts naturally. Suitable for all skin types, it leaves your complexion clear, smooth, and radiant.',
         price: 200, stock: 50,
         category: 'Skin Care'
     },
     {
         name: 'Anti-Aging Herbal Cream',
-        description: 'Rich cream with ginseng and collagen boosters.',
+        description: 'Our anti-aging herbal cream is infused with ginseng, collagen boosters, and antioxidant-rich botanicals to fight fine lines and wrinkles. It nourishes the skin deeply, restores elasticity, and promotes a youthful glow. Ideal for nightly use, it hydrates, revitalizes, and leaves your skin feeling soft and rejuvenated.',
         price: 250, stock: 40,
         category: 'Skin Care'
     },
     {
         name: 'Hydrating Aloe Gel',
-        description: 'Soothing aloe vera gel for dry skin.',
+        description: 'This soothing aloe vera gel provides intense hydration while calming irritated or sunburned skin. Its lightweight, non-greasy formula absorbs quickly and restores moisture balance. Perfect for dry or sensitive skin, it promotes a refreshed, healthy, and radiant appearance.',
         price: 150, stock: 100,
         category: 'Skin Care'
     },
     {
         name: 'Brightening Vitamin C Cream',
-        description: 'Herbal cream enriched with vitamin C for brighter skin.',
+        description: 'Brighten your skin with our herbal cream enriched with vitamin C and natural brightening extracts. It reduces dark spots, evens skin tone, and enhances your skin’s natural radiance. The cream also protects against environmental stressors while nourishing and revitalizing your complexion.',
         price: 220,
         stock: 60,
         category: 'Skin Care'
     },
     {
         name: 'Herbal Dandruff Shampoo',
-        description: 'Shampoo with neem & rosemary to fight dandruff.',
+        description: 'Our herbal dandruff shampoo is formulated with neem and rosemary to fight flakes, soothe itchiness, and restore scalp health naturally. Its gentle cleansing formula nourishes the hair while controlling excess oil and dryness. Regular use leaves hair soft, shiny, and dandruff-free.',
         price: 180,
         stock: 70,
         category: 'Hair Care'
     },
     {
         name: 'Strengthening Hibiscus Oil',
-        description: 'Nourishing hibiscus oil to prevent hair fall.',
+        description: 'Nourish and strengthen your hair with our herbal hibiscus oil, enriched with vitamins and botanicals that prevent breakage and promote healthy growth. It improves hair texture, adds shine, and reduces hair fall naturally. Suitable for all hair types, it enhances volume and vitality with regular use.',
         price: 200,
         stock: 50,
         category: 'Hair Care'
     },
     {
         name: 'Moisturizing Argan Shampoo',
-        description: 'Argan-infused shampoo for frizzy hair.',
+        description: 'Our argan-infused herbal shampoo hydrates and repairs dry, frizzy hair while restoring softness and shine. Rich in antioxidants and essential fatty acids, it strengthens hair strands and improves manageability. Regular use leaves hair silky, smooth, and healthy-looking.',
         price: 190,
         stock: 80,
         category: 'Hair Care'
     },
     {
         name: 'Herbal Hair Growth Tonic',
-        description: 'Ayurvedic tonic with bhringraj and amla.',
+        description: 'This Ayurvedic hair tonic combines bhringraj, amla, and natural herbs to stimulate scalp circulation and promote hair growth. It strengthens follicles, reduces thinning, and improves overall hair health. Perfect for all hair types, it encourages thicker, fuller, and more resilient hair naturally.',
         price: 210,
         stock: 45,
         category: 'Hair Care'
     },
     {
         name: 'Rejuvenating Night Cream',
-        description: 'Night cream with lavender & chamomile.',
+        description: 'Our rejuvenating night cream is infused with lavender, chamomile, and herbal antioxidants to repair and restore your skin while you sleep. It reduces puffiness, deeply hydrates, and promotes a refreshed, radiant complexion. Wake up to softer, healthier, and revitalized skin every morning.',
         price: 230,
         stock: 60,
         category: 'Wellness'
     },
     {
         name: 'Detox Herbal Tea',
-        description: 'Cleansing herbal tea blend for detox.',
+        description: 'Enjoy a cleansing cup of our detox herbal tea, crafted from a blend of natural detoxifying herbs that support digestion and flush out toxins. Its soothing aroma and gentle herbal ingredients promote overall wellness and vitality. Perfect for a daily detox ritual to maintain a healthy lifestyle.',
         price: 120,
         stock: 90,
         category: 'Wellness'
     },
     {
         name: 'Relaxing Lavender Oil',
-        description: 'Pure lavender essential oil to relieve stress.',
+        description: 'Pure lavender essential oil for aromatherapy and topical use, designed to reduce stress, promote relaxation, and improve sleep quality. Its calming scent helps relieve tension and anxiety.',
         price: 140,
         stock: 70,
         category: 'Wellness'
     },
     {
         name: 'Energizing Ginseng Blend',
-        description: 'Herbal ginseng tea to boost energy.',
+        description: 'Herbal ginseng tea to naturally boost energy, enhance mental focus, and support the immune system. Blended with traditional herbs for a revitalizing daily drink that keeps you active and alert.',
         price: 160,
         stock: 50,
         category: 'Wellness'
