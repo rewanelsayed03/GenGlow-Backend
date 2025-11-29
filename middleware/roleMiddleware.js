@@ -2,8 +2,10 @@
 const SYSTEM_ROLES = ["admin", "pharmacist", "user"];
 
 const roleMiddleware = (...allowedRoles) => {
+    // allowedRoles --> rest parameter comes from the route where you attach the middleware.
     return (req, res, next) => {
         try {
+
             // User must be authenticated first
             if (!req.user) {
                 return res.status(401).json({ error: "Unauthorized" });
