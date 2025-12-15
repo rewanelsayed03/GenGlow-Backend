@@ -117,6 +117,20 @@ const updateOrder = async (req, res) => {
     }
 };
 
+// Get all orders for logged-in user
+const getMyOrders = async (req, res) => {
+    try {
+        const orders = await Order.find({ user: req.user._id })
+            .populate('products.product', 'name price category')
+            .populate('shippingPartner', 'name phone')
+            .sort({ createdAt: -1 });
+
+        res.json(orders);
+    } catch (error) {
+        console.error('Get My Orders Error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
 
 // Get Single Order 
 const getOrderById = async (req, res) => {
@@ -141,6 +155,7 @@ const getOrderById = async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 };
+
 
 // Cancel Order
 const cancelOrder = async (req, res) => {
@@ -173,6 +188,7 @@ const cancelOrder = async (req, res) => {
 
 module.exports = {
     createOrder,
+    getMyOrders,
     getOrderById,
     updateOrder,
     cancelOrder
