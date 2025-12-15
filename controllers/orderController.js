@@ -97,12 +97,20 @@ const updateOrder = async (req, res) => {
             order.shippingPartner = partner._id;
         }
 
-        // Status updates (admin/pharmacist or order owner)
+        // Status updates (admin/pharmacist only)
         if (req.body.status) {
-            if (req.user.role === 'admin' || req.user.role === 'pharmacist' || order.user.toString() === req.user._id.toString()) {
+            if (req.user.role === 'admin' || req.user.role === 'pharmacist') {
                 order.status = req.body.status;
             }
         }
+
+        // Payment status update (admin/pharmacist only)
+        if (req.body.paymentStatus) {
+            if (req.user.role === 'admin' || req.user.role === 'pharmacist') {
+                order.paymentStatus = req.body.paymentStatus;
+            }
+        }
+
 
         const updated = await order.save();
         const populated = await Order.findById(updated._id)
