@@ -5,7 +5,7 @@ const mongoose = require('mongoose');
 // Checkout
 exports.createPayment = async (req, res) => {
     try {
-        const { orderId, method } = req.body;
+        const { orderId } = req.body;
 
         // Checks if orderId was provided. 
         if (!orderId) return res.status(400).json({ error: 'Order ID is required' });
@@ -28,7 +28,9 @@ exports.createPayment = async (req, res) => {
 
         // Prevents creating multiple payments for the same order.
         const existingPayment = await Payment.findOne({ order: orderId });
-        if (existingPayment) return res.status(400).json({ error: 'Payment already exists for this order' });
+        if (existingPayment) {
+            return res.status(400).json({ error: 'Payment already exists for this order' });
+        }
 
         // Creates a new Payment object.
         const payment = new Payment({
@@ -41,10 +43,13 @@ exports.createPayment = async (req, res) => {
 
         // Saves payment to DB.
         await payment.save();
-        order.status = 'Pending'
+        order.status = 'Pending';
         await order.save();
 
-        res.status(201).json({ message: 'Payment created successfully', payment });
+        res.status(201).json({
+            message: 'Payment created successfully',
+            payment
+        });
 
     } catch (error) {
         // Show full error details for debugging
@@ -75,29 +80,97 @@ exports.getUserPayments = async (req, res) => {
     }
 };
 
-// Complete Payment (Admin/Pharmacist only)
+// Complete Payment (Admin / Pharmacist)
 exports.completePayment = async (req, res) => {
+    console.log('COMPLETE PAYMENT ENDPOINT HIT');
+
     try {
+        // Fetch payment + order + products
+        const payment = await Payment.findById(req.params.id).populate({
+            path: 'order',
+            populate: { path: 'products.product' }
+        });
 
-        // Fetches the payment by ID, populating the associated order.
-        const payment = await Payment.findById(req.params.id).populate('order');
-        if (!payment) return res.status(404).json({ error: 'Payment not found' });
+        // Validate payment
+        if (!payment) {
+            return res.status(404).json({ error: 'Payment not found' });
+        }
 
-        // Checks that the order exists.
         if (!payment.order) {
             return res.status(400).json({ error: 'Associated order not found' });
         }
 
-        // Update payment status
+        // Prevent double completion
+        if (payment.status === 'Completed') {
+            return res.status(400).json({ error: 'Payment already completed' });
+        }
+
+        const order = payment.order;
+
+        // Enforce business flow
+        if (order.status !== 'Shipped') {
+            return res.status(400).json({
+                error: 'Order must be shipped before completing payment'
+            });
+        }
+
+        // Reduce stock
+        for (const item of order.products) {
+            const product = item.product;
+
+            console.log(`${product.name} | Stock before: ${product.stock}`);
+
+            if (product.stock < item.quantity) {
+                return res.status(400).json({
+                    error: `Not enough stock for ${product.name}`
+                });
+            }
+
+            product.stock -= item.quantity;
+            await product.save();
+
+            console.log(`Stock after: ${product.stock}`);
+        }
+
+        // Finalize payment
         payment.status = 'Completed';
-        await payment.save(); 
+        await payment.save();
 
-        // Update order status safely
-        await Order.findByIdAndUpdate(payment.order._id, { status: 'Completed' });
+        // Finalize order
+        order.paymentStatus = 'Completed';
+        order.status = 'Delivered';
+        await order.save();
 
-        res.json({ message: 'Payment marked as completed', payment });
+        
+        res.json({
+            message: 'Payment completed, order delivered & stock reduced',
+            payment: {
+                _id: payment._id,
+                status: payment.status,
+                user: payment.user,
+                method: payment.method,
+                amount: payment.amount,
+                paymentDate: payment.paymentDate,
+                createdAt: payment.createdAt,
+                updatedAt: payment.updatedAt,
+                order: {
+                    _id: order._id,
+                    status: order.status,
+                    paymentStatus: order.paymentStatus,
+                    shippingPartner: order.shippingPartner,
+                    products: order.products.map(item => ({
+                        quantity: item.quantity,
+                        stock: item.product.stock
+                    }))
+                }
+            }
+        });
+
     } catch (error) {
         console.error('Complete Payment Error:', error);
-        res.status(500).json({ error: 'Server error', details: error.message });
+        res.status(500).json({
+            error: 'Server error',
+            details: error.message
+        });
     }
 };

@@ -51,10 +51,6 @@ const createOrder = async (req, res) => {
             if (dbProduct.stock < item.quantity) {
                 return res.status(400).json({ error: `Not enough stock for ${dbProduct.name}` });
             }
-
-            // // Reduces stock and saves the product.
-            dbProduct.stock -= item.quantity;
-            await dbProduct.save();
         }
 
         // Creates a new order for the user.
@@ -64,7 +60,8 @@ const createOrder = async (req, res) => {
             products: orderProducts,
             totalPrice,
             shippingPartner: null,
-            paymentStatus: 'Pending'
+            status: 'Pending',
+            paymentStatus: 'Pending' 
         });
 
         await order.save();
@@ -97,6 +94,10 @@ const updateOrder = async (req, res) => {
             order.shippingPartner = partner._id;
         }
 
+        console.log('REQ BODY:', req.body);
+        console.log('USER ROLE:', req.user.role);
+
+
         // Status updates (admin/pharmacist only)
         if (req.body.status) {
             if (req.user.role === 'admin' || req.user.role === 'pharmacist') {
@@ -110,7 +111,6 @@ const updateOrder = async (req, res) => {
                 order.paymentStatus = req.body.paymentStatus;
             }
         }
-
 
         const updated = await order.save();
         const populated = await Order.findById(updated._id)
