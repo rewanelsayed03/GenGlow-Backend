@@ -20,8 +20,8 @@ const handleValidation = (req, res, next) => {
     next();
 };
 
-// Validation rules for creating/updating product
-const productValidationRules = [
+// Validation rules for creating product
+const createProductValidationRules = [
     body('name').notEmpty().withMessage('Product name is required'),
     body('description').notEmpty().withMessage('Description is required'),
     body('price').isFloat({ min: 1 }).withMessage('Price must be a positive number'),
@@ -32,19 +32,26 @@ const productValidationRules = [
 
 ];
 
+// Validation rules for updating product
+const updateProductValidationRules = [
+    body('price').optional().isFloat({ min: 1 }).withMessage('Price must be a positive number'),
+    body('stock').optional().isInt({ min: 1 }).withMessage('Stock must be a non-negative integer'),
+    body('supplier').optional().isMongoId().withMessage('Supplier must be a valid Mongo ID')
+];
+
 // Public: anyone can see products
 router.get('/', getAllProducts);
 router.get('/:id', getProductById);
 
 // Protected: only admin/pharmacist can manage products
 router.post('/', authMiddleware, roleMiddleware('admin', 'pharmacist'),
-    productValidationRules,
+    createProductValidationRules,
     handleValidation,
     createProduct
 );
 
 router.put('/:id', authMiddleware, roleMiddleware('admin', 'pharmacist'),
-    productValidationRules,
+    updateProductValidationRules,
     handleValidation,
     updateProduct
 );
