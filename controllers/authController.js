@@ -190,7 +190,7 @@ exports.forgotPassword = async (req, res) => {
         });
 
         // Builds a password reset link.
-        const resetURL = `http://localhost:5000/api/auth/reset-password/${resetToken}`;
+        const resetURL = `http://localhost:3000/api/auth/reset-password/${resetToken}`;
 
         // Sends the password reset link via email.
         await transporter.sendMail({
