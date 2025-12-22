@@ -7,12 +7,19 @@ const createOrder = async (req, res) => {
     try {
 
         // req.body.products is expected to be an array of { product: <id>, quantity: <number> }.
-        const { products } = req.body;
-
+        const { products, shippingAddress } = req.body;
+        
         // Validate products
         // Checks that: products exists, it's an array, it’s not empty.
         if (!products || !Array.isArray(products) || products.length === 0) {
             return res.status(400).json({ error: 'Products array is required' });
+        }
+
+        // address
+        if (shippingAddress) {
+            if (!shippingAddress.phone || !shippingAddress.city) {
+                return res.status(400).json({ error: 'Incomplete shipping address' });
+            }
         }
 
         // each product has a valid ID and quantity >= 1.
@@ -59,10 +66,12 @@ const createOrder = async (req, res) => {
             user: req.user._id,
             products: orderProducts,
             totalPrice,
+            shippingAddress: shippingAddress || null,
             shippingPartner: null,
             status: 'Pending',
-            paymentStatus: 'Pending' 
+            paymentStatus: 'Pending'
         });
+
 
         await order.save();
 
@@ -117,6 +126,7 @@ const updateOrder = async (req, res) => {
             .populate('user', 'name email')
             .populate('products.product', 'name price')
             .populate('shippingPartner', 'name phone');
+            
 
         res.json({ message: 'Order updated successfully', order: populated });
     } catch (error) {

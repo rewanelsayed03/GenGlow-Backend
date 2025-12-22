@@ -20,6 +20,14 @@ const orderSchema = new mongoose.Schema({
         default: 'Pending'
     },
 
+    shippingAddress: {
+        fullName: String,
+        phone: String,
+        street: String,
+        city: String,
+        governorate: String
+    },
+
     shippingPartner: { type: mongoose.Schema.Types.ObjectId, ref: 'ShippingPartner', default: null },
     paymentStatus: {
         type: String,
